@@ -8,16 +8,18 @@ const CROSS = 'cross';
 const CIRCLE = 'circle';
 const NBR_OF_COLS = 5;
 const NBR_OF_ROWS = 5;
-const NBR_OF_SHOTS = 30;
+const NBR_OF_SHIPS = 3;
+const NBR_OF_SHOTS = 15;
 let initialBoard = new Array(NBR_OF_COLS * NBR_OF_ROWS).fill(START);
 
 export default function Gameboard() {
 
-    const [isCross, setCross] = useState(true);
-    const [winner, setWinner] = useState("");
+    const [NoShip, setNoShip] = useState(true);
     const [nbrOfShotsLeft, setNbrOfShotsLeft] = useState(NBR_OF_SHOTS);
+    const [hits, setHits] = useState(0);
+    const [ships, setShips] = useState([]);
+    const [position, setPosition] = useState([]);
     const [board, setBoard] = useState(initialBoard);
-    const [nbrOfWins, setNbrOfWins] = useState(0);
     const [status, setStatus] = useState('');
 
     const items = [];
@@ -44,44 +46,49 @@ export default function Gameboard() {
         items.push(row);
     }
 
+    const initializeShips = () => {
+        const futureShips = []
+        const getRandomNumber = () => Math.floor(Math.random() * board.length + 1)
+
+        while(futureShips.length < 3) {
+            const randomnumber = getRandomNumber()
+            // onko samassa kohtaa 2 laivaa
+            if(!futureShips.includes(randomnumber) ) futureShips.push(randomnumber)
+        }
+        console.log(futureShips)
+        setShips(futureShips)
+    }
+    
     useEffect(() => {
-        winGame();
-        if (nbrOfShotsLeft === NBR_OF_SHOTS) {
-            setStatus('Game has not started');
-        }
-        if (nbrOfShotsLeft < 0) {
-            setNbrOfShotsLeft(NBR_OF_SHOTS - 1);
-            setNbrOfWins(0);
-        }
-    }, [nbrOfShotsLeft]);
+        initializeShips();
+        // if (nbrOfShotsLeft === NBR_OF_SHOTS) {
+        //     setStatus('Game has not started');
+        // }
+        // else if (nbrOfShotsLeft < 0) {
+        //     setNbrOfShotsLeft(NBR_OF_SHOTS - 1);
+        // }
+    }, []);
 
     function drawItem(number) {
         if (board[number] === START && winGame() === "") {
-            board[number] = isCross ? CROSS : CIRCLE;
-            setCross(!isCross);
+            board[number] = NoShip ? CROSS : CIRCLE;
+            setNoShip(!NoShip);
             if (winGame() !== "") {
-                setWinner(winGame());
             }
             else if (board.indexOf(START) === -1) {
-                setWinner('No winner'); 
             }
-        } 
+        }
     }
 
     function resetGame() {
-        setCross(true);
-        setWinner('');
+        setNoShip(true);
         initialBoard = [...board];
         initialBoard = new Array(NBR_OF_COLS * NBR_OF_ROWS).fill(START);
         setBoard(initialBoard);
     }
 
-    // function takeShots() {
-    //     for (let i = 0; i < )
-    // }
-
     function chooseItemColor(number) {
-        if(board[number] === CROSS) {
+        if (board[number] === CROSS) {
             return "#FF3031"
         }
         else if (board[number] === CIRCLE) {
@@ -92,36 +99,46 @@ export default function Gameboard() {
         }
     }
 
-    function winGame() {
-        if(board[0] != "plus" && board[0] == board[1] && board[1] == board[2]){
-          return board[0]
-        }else if(board[3] != "plus" && board[3] == board[4] && board[4] == board[5]){
-          return board[3]
-        }else if(board[6] != "plus" && board[6] == board[7] && board[7] == board[8]){
-          return board[6]
-        }else if(board[0] != "plus" && board[0] == board[3] && board[3] == board[6]){
-          return board[0]
-        }else if(board[1] != "plus" && board[1] == board[4] && board[4] == board[7]){
-          return board[1]
-        }else if(board[2] != "plus" && board[2] == board[5] && board[5] == board[8]){
-          return board[2]
-        }else if(board[0] != "plus" && board[0] == board[4] && board[4] == board[8]){
-          return board[0]
-        }else if(board[2] != "plus" && board[2] == board[4] && board[4] == board[6]){
-          return board[2]
-        }else{
-          return ""
-        }
-      }
+    // function winGame() {
+    //     if (hits = 3) {
+    //         setStatus('You won');
+    //     }
+    //     else if (nbrOfShotsLeft = 0) {
+    //         setStatus('Pommit loppu, luuseri');
+    //     }
+    // }
 
+    function winGame() {
+        if (board[0] != "plus" && board[0] == board[1] && board[1] == board[2]) {
+            return board[0]
+        } else if (board[3] != "plus" && board[3] == board[4] && board[4] == board[5]) {
+            return board[3]
+        } else if (board[6] != "plus" && board[6] == board[7] && board[7] == board[8]) {
+            return board[6]
+        } else if (board[0] != "plus" && board[0] == board[3] && board[3] == board[6]) {
+            return board[0]
+        } else if (board[1] != "plus" && board[1] == board[4] && board[4] == board[7]) {
+            return board[1]
+        } else if (board[2] != "plus" && board[2] == board[5] && board[5] == board[8]) {
+            return board[2]
+        } else if (board[0] != "plus" && board[0] == board[4] && board[4] == board[8]) {
+            return board[0]
+        } else if (board[2] != "plus" && board[2] == board[4] && board[4] == board[6]) {
+            return board[2]
+        } else {
+            return ""
+        }
+    }
 
     return (
         <View style={styles.gameboard}>
             <View style={styles.flex}>{items}</View>
             <Text style={styles.gameinfo}>Shots left: {nbrOfShotsLeft}</Text>
-            <Text style={styles.gameinfo}>Winner: {winner}</Text>
+            <Text style={styles.gameinfo}>Hits: {hits}</Text>
+            <Text style={styles.gameinfo}>Ships: {ships.length}</Text>
+            <Text style={styles.gameinfo}>Status: {status}</Text>
             <Pressable style={styles.button} onPress={() => resetGame()}>
-                <Text style={styles.buttonText}>Restart Game</Text>
+                <Text style={styles.buttonText}>New Game</Text>
             </Pressable>
         </View>
     );

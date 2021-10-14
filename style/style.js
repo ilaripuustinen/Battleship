@@ -7,12 +7,12 @@ export default StyleSheet.create({
   },
   header: {
     marginTop: 30,
-    backgroundColor: 'skyblue',
+    backgroundColor: '#136F63',
     flexDirection: 'row'
   },
   footer: {
     marginTop: 20,
-    backgroundColor: 'skyblue',
+    backgroundColor: '#136F63',
     flexDirection: 'row'
   },
   title: {
