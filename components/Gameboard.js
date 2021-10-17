@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { Text, View, Pressable } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
 import styles from '../style/style';
@@ -15,12 +16,13 @@ let initialBoard = new Array(NBR_OF_COLS * NBR_OF_ROWS).fill(START);
 export default function Gameboard() {
 
     const [NoShip, setNoShip] = useState(true);
-    const [nbrOfShotsLeft, setNbrOfShotsLeft] = useState(NBR_OF_SHOTS);
+    const [time, setTime] = useState(30);
     const [hits, setHits] = useState(0);
     const [ships, setShips] = useState([]);
-    const [position, setPosition] = useState([]);
     const [board, setBoard] = useState(initialBoard);
+    const [nbrOfShots, setNbrOfShots] = useState(NBR_OF_SHOTS);
     const [status, setStatus] = useState('');
+    const timerInterval = useRef()
 
     const items = [];
     for (let x = 0; x < NBR_OF_ROWS; x++) {
@@ -30,7 +32,7 @@ export default function Gameboard() {
                 <Pressable
                     key={x * NBR_OF_COLS + y}
                     style={styles.item}
-                    onPress={() => drawItem(x * NBR_OF_COLS + y)}>
+                    onPress={() => clickHandler(x * NBR_OF_COLS + y)}>
                     <Entypo
                         key={x * NBR_OF_COLS + y}
                         name={board[x * NBR_OF_COLS + y]}
@@ -46,96 +48,99 @@ export default function Gameboard() {
         items.push(row);
     }
 
+    const clickHandler = (clickedPoint) => {
+        if (!timerInterval.current) {
+            setStatus("Press New game button to start game D:")
+            return;
+        }
+        drawItem(clickedPoint)
+        setNbrOfShots(state => state -1)
+    }
+
     const initializeShips = () => {
         const futureShips = []
         const getRandomNumber = () => Math.floor(Math.random() * board.length + 1)
 
-        while(futureShips.length < 3) {
+        while(futureShips.length < NBR_OF_SHIPS) {
             const randomnumber = getRandomNumber()
             // onko samassa kohtaa 2 laivaa
             if(!futureShips.includes(randomnumber) ) futureShips.push(randomnumber)
         }
-        console.log(futureShips)
         setShips(futureShips)
     }
     
     useEffect(() => {
         initializeShips();
-        // if (nbrOfShotsLeft === NBR_OF_SHOTS) {
-        //     setStatus('Game has not started');
-        // }
-        // else if (nbrOfShotsLeft < 0) {
-        //     setNbrOfShotsLeft(NBR_OF_SHOTS - 1);
-        // }
     }, []);
 
-    function drawItem(number) {
-        if (board[number] === START && winGame() === "") {
-            board[number] = NoShip ? CROSS : CIRCLE;
-            setNoShip(!NoShip);
-            if (winGame() !== "") {
-            }
-            else if (board.indexOf(START) === -1) {
-            }
+    useEffect(() => {
+        if (hits === NBR_OF_SHIPS) {
+            setStatus("You won");
+            clearInterval(timerInterval.current);
         }
+        if (nbrOfShots === 0) {
+            setStatus("All shots used.")
+            clearInterval(timerInterval.current);
+        }
+    },[hits, nbrOfShots]);
+
+    useEffect(() => {
+        if (time === 0) {
+            setStatus("Aika loppui, oo nopeempi");
+            clearInterval(timerInterval.current);
+        }
+    },[time]);
+
+    const tickTock = () => {
+        clearInterval(timerInterval.current)
+        setTime(30)
+
+        const newInterval = setInterval(() => {
+        setTime(state => state -1);
+        }, 1000);
+
+        timerInterval.current = newInterval
+    }
+
+    function drawItem(number) {
+        setBoard(state => state.map((element, index) => 
+        {
+            if(index === number) {
+                if(ships.includes(number)) {
+                    setHits(hits + 1);
+                    return CIRCLE;
+                }
+                else return CROSS
+            }
+            else return element
+        }
+        ))
     }
 
     function resetGame() {
         setNoShip(true);
+        tickTock();
+        setNbrOfShots(NBR_OF_SHOTS);
+        setHits(0);
+        setStatus('Sink the ships');
         initialBoard = [...board];
         initialBoard = new Array(NBR_OF_COLS * NBR_OF_ROWS).fill(START);
         setBoard(initialBoard);
     }
 
     function chooseItemColor(number) {
-        if (board[number] === CROSS) {
-            return "#FF3031"
-        }
-        else if (board[number] === CIRCLE) {
-            return "#45CE30"
-        }
-        else {
-            return "#74B9FF"
-        }
-    }
-
-    // function winGame() {
-    //     if (hits = 3) {
-    //         setStatus('You won');
-    //     }
-    //     else if (nbrOfShotsLeft = 0) {
-    //         setStatus('Pommit loppu, luuseri');
-    //     }
-    // }
-
-    function winGame() {
-        if (board[0] != "plus" && board[0] == board[1] && board[1] == board[2]) {
-            return board[0]
-        } else if (board[3] != "plus" && board[3] == board[4] && board[4] == board[5]) {
-            return board[3]
-        } else if (board[6] != "plus" && board[6] == board[7] && board[7] == board[8]) {
-            return board[6]
-        } else if (board[0] != "plus" && board[0] == board[3] && board[3] == board[6]) {
-            return board[0]
-        } else if (board[1] != "plus" && board[1] == board[4] && board[4] == board[7]) {
-            return board[1]
-        } else if (board[2] != "plus" && board[2] == board[5] && board[5] == board[8]) {
-            return board[2]
-        } else if (board[0] != "plus" && board[0] == board[4] && board[4] == board[8]) {
-            return board[0]
-        } else if (board[2] != "plus" && board[2] == board[4] && board[4] == board[6]) {
-            return board[2]
-        } else {
-            return ""
-        }
+        if (board[number] === CROSS) return "#FF3031"
+        else if (board[number] === CIRCLE) return "#45CE30"
+        else return "#74B9FF"    
     }
 
     return (
         <View style={styles.gameboard}>
             <View style={styles.flex}>{items}</View>
-            <Text style={styles.gameinfo}>Shots left: {nbrOfShotsLeft}</Text>
+            <Text style={styles.gameinfo}>Shots left: {nbrOfShots}</Text>
             <Text style={styles.gameinfo}>Hits: {hits}</Text>
             <Text style={styles.gameinfo}>Ships: {ships.length}</Text>
+            <Text style={styles.gameinfo}>Time: {time}</Text>
             <Text style={styles.gameinfo}>Status: {status}</Text>
             <Pressable style={styles.button} onPress={() => resetGame()}>
                 <Text style={styles.buttonText}>New Game</Text>
