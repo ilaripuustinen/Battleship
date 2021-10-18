@@ -15,7 +15,7 @@ let initialBoard = new Array(NBR_OF_COLS * NBR_OF_ROWS).fill(START);
 
 export default function Gameboard() {
 
-    const [NoShip, setNoShip] = useState(true);
+    const [noShip, setNoShip] = useState(true);
     const [time, setTime] = useState(30);
     const [hits, setHits] = useState(0);
     const [ships, setShips] = useState([]);
@@ -50,7 +50,7 @@ export default function Gameboard() {
 
     const clickHandler = (clickedPoint) => {
         if (!timerInterval.current) {
-            setStatus("Press New game button to start game D:")
+            setStatus("Press New game button to start the game")
             return;
         }
         drawItem(clickedPoint)
@@ -86,7 +86,7 @@ export default function Gameboard() {
 
     useEffect(() => {
         if (time === 0) {
-            setStatus("Aika loppui, oo nopeempi");
+            setStatus("Time ran out");
             clearInterval(timerInterval.current);
         }
     },[time]);
