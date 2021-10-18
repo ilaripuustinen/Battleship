@@ -6,7 +6,7 @@ export default function Header() {
     return (
         <View style={styles.header}>
             <Text style={styles.title}>
-                Pra Pra, laivat uppoo - Peli
+                Battleship
             </Text>
         </View>
     )
